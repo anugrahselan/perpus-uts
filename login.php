@@ -1,66 +1,131 @@
+<?php
+session_start();
+require_once "includes/config.php";
+
+if(!isset($_SESSION['admin_logged_in'])) {
+    header("Location: index.php");
+    exit();
+}
+
+// jika ada method post makan jalankan block iini, jika tidak ada maka hiraukan
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+    // pertam ambil POST yaitu username & password sesuai nama di form input
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    //password yang di md5, karena kita akan menggunakan md5
+    $hashed_password = md5($password);
+
+    //query yang dipakai
+    $sql = "SELECT id_admin, username, nama_lengkap FROM admin WHERE username = ? AND password = ?";
+    if ($stmt = $mysqli->prepare($sql)) {
+        $stmt->bind_param("ss", $username, $hashed_password); // Jadi disini password yang dicek adalah $hashed_password
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows == 1) {
+            //jika stmt->num_rows ada = 1, artinya username & password benar
+            //pertama kita akan bind result
+            $stmt->bind_result($admin_id, $admin_username, $admin_nama_lengkap);
+            $stmt->fetch();
+
+            //sekarang kita buat session
+            $_SESSION['admin_logged_in'] = true; // ini akan kita pakai di index, untuk mengecek apakah user sudah login
+            $_SESSION['admin_id'] = $admin_id;
+            $_SESSION['admin_username'] = $admin_username;
+            $_SESSION['admin_nama_lengkap'] = $admin_nama_lengkap;
+            //kalau sudah arahkan header ke index.php / dashboard
+            header("location: index.php");
+            exit; //untuk memaksa agar proses berhenti sampai sini
+        } else {
+            // ini jika username & password tidak  sesuai
+            $pesan = "Username atau Password Salah!";
+        }
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Login - Admin Perpustakaan</title>
-        <link href="assets/css/styles.css" rel="stylesheet" />
-        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    </head>
-    <body class="bg-primary">
-        <div id="layoutAuthentication">
-            <div id="layoutAuthentication_content">
-                <main>
-                    <div class="container">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-5">
-                                <div class="card shadow-lg border-0 rounded-lg mt-5">
-                                    <div class="card-header"><h3 class="text-center font-weight-light my-4">Login</h3></div>
-                                    <div class="card-body">
-                                        <form>
-                                            <div class="form-floating mb-3">
-                                                <input class="form-control" id="inputEmail" type="email" placeholder="name@example.com" />
-                                                <label for="inputEmail">Username</label>
-                                            </div>
-                                            <div class="form-floating mb-3">
-                                                <input class="form-control" id="inputPassword" type="password" placeholder="Password" />
-                                                <label for="inputPassword">Password</label>
-                                            </div>
-                                            <div class="form-check mb-3">
-                                                <input class="form-check-input" id="inputRememberPassword" type="checkbox" value="" />
-                                                <label class="form-check-label" for="inputRememberPassword">Remember Password</label>
-                                            </div>
-                                            <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
-                                                <span class="small">Forgot Password?</span>
-                                                <button class="btn btn-primary" href="index.html">Login</button>
-                                            </div>
-                                        </form>
-                                    </div>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Login - Admin Perpustakaan</title>
+    <link href="assets/css/styles.css" rel="stylesheet" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+</head>
+
+<body class="bg-primary">
+    <div id="layoutAuthentication">
+        <div id="layoutAuthentication_content">
+            <main>
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-5">
+                            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                                <div class="card-header">
+                                    <h3 class="text-center font-weight-light my-4">Login</h3>
+                                </div>
+                                <div class="card-body">
+                                    <!-- ini untuk pesan error, jadi hanya muncul jika username / password salah  -->
+                                    <!-- ini artinya jika $pesan tidak kosong, berarti ada dimana kala ada maka sudah pasti username/password salah maka tampilkan blok ini (blog error) -->
+                                    <?php if (!empty($pesan)): ?>
+                                        <div class="alert alert-danger" role="alert">
+                                            <?php echo $pesan ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <form action="login.php" method="post">
+                                        <div class="form-floating mb-3">
+                                            <input class="form-control" id="username" name="username" type="text"
+                                                placeholder="Username" />
+                                            <label for="Username">Username</label>
+                                        </div>
+                                        <div class="form-floating mb-3">
+                                            <input class="form-control" id="password" name="password" type="password"
+                                                placeholder="Password" />
+                                            <label for="password">Password</label>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" id="inputRememberPassword" type="checkbox"
+                                                value="" />
+                                            <label class="form-check-label" for="inputRememberPassword">Remember
+                                                Password</label>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                                            <span class="small">Forgot Password?</span>
+                                            <button class="btn btn-primary" type="submit">Login</button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </main>
-            </div>
-            <div id="layoutAuthentication_footer">
-                <footer class="py-4 bg-light mt-auto">
-                    <div class="container-fluid px-4">
-                        <div class="d-flex align-items-center justify-content-between small">
+                </div>
+            </main>
+        </div>
+        <div id="layoutAuthentication_footer">
+            <footer class="py-4 bg-light mt-auto">
+                <div class="container-fluid px-4">
+                    <div class="d-flex align-items-center justify-content-between small">
                         <div class="text-muted">Copyright &copy; Atmaluhur <?= date('Y') ?></div>
-                            <div>
-                                <a href="#">Privacy Policy</a>
-                                &middot;
-                                <a href="#">Terms &amp; Conditions</a>
-                            </div>
+                        <div>
+                            <a href="#">Privacy Policy</a>
+                            &middot;
+                            <a href="#">Terms &amp; Conditions</a>
                         </div>
                     </div>
-                </footer>
-            </div>
+                </div>
+            </footer>
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-        <script src="assets/js/scripts.js"></script>
-    </body>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+    <script src="assets/js/scripts.js"></script>
+</body>
+
 </html>
