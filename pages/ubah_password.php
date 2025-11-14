@@ -92,7 +92,7 @@ $mysqli->close();
                 </div>
 
                 <button type="submit" class="btn btn-primary">Simpan</button>
-                <a href="index.php?hal=daftar-kategori" class="btn btn-danger">Kembali</a>
+                <a href="index.php?hal=daftar_anggota" class="btn btn-danger">Kembali</a>
             </form>
         </div>
     </div>

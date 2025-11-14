@@ -34,7 +34,7 @@ if ($result_kategori) {
 
     <div class="card mb-4">
         <div class="card-body">
-            <a href="index.php?hal=tambah-kategori" class="btn btn-success mb-3">Tambah Kategori</a>
+            <a href="index.php?hal=tambah_kategori" class="btn btn-success mb-3">Tambah Kategori</a>
 
             <table class="table table-striped table-bordered">
                 <thead class="table-dark">
